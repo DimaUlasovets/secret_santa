@@ -12,7 +12,7 @@ def main():
 
     DOT_ENV_PATH = pathlib.Path() / ".env"
     if DOT_ENV_PATH.exists():
-        dotenv.read_dotenv(DOT_ENV_PATH)
+        dotenv.load_dotenv(DOT_ENV_PATH)
 
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "secret_santa.settings")
     try:

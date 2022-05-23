@@ -7,10 +7,10 @@ from django.db import models
 # Create your models here.
 
 
-class StatusChoices(Enum):
-    OPEN = "OPEN"
-    MOVING = "MOVING"
-    CLOSE = "CLOSE"
+class StatusChoices(str, Enum):
+    OPEN = "open"
+    MOVING = "moving"
+    CLOSE = "close"
 
     @classmethod
     def choices(cls):
@@ -32,7 +32,7 @@ class Boxes(models.Model):
     name_box = models.CharField(max_length=100)
     create_date = models.DateTimeField(auto_now_add=True)
     end_date = models.DateTimeField(blank=True, null=True)
-    status_box = models.CharField(max_length=10, choices=StatusChoices.choices(), default="open")
+    status_box = models.CharField(max_length=10, choices=StatusChoices.choices(), default=StatusChoices.OPEN)
 
     def __str__(self):
         return self.name_box
@@ -47,7 +47,7 @@ class Boxes(models.Model):
         return users
 
     def move_bag(self):
-        if self.status_box == "moving":
+        if self.status_box == StatusChoices.MOVING:
             giftrequests = self.giftrequests.all()
             users = self.users
             for giftrequest in giftrequests:
@@ -63,10 +63,10 @@ class Boxes(models.Model):
                 users.remove(secret_user)
 
     def close_group(self):
-        if self.status_box == "open" and len(self.users) > 2:
-            self.status_box = "moving"
+        if self.status_box == StatusChoices.OPEN and len(self.users) > 2:
+            self.status_box = StatusChoices.MOVING
             self.move_bag()
-            self.status_box = "close"
+            self.status_box = StatusChoices.CLOSE
             self.save()
 
 
