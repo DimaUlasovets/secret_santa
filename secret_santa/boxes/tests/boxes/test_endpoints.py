@@ -1,10 +1,10 @@
+from boxes.api.v1.serializers import BoxesSerializer, GiftRequestSerializer
+from boxes.models import Boxes, GiftRequest
 from django.urls import reverse
 from faker import Faker
 from rest_framework import status
 from rest_framework.test import APITestCase
-
-from ...models import Boxes, GiftRequest, Users
-from ...serializers import BoxesSerializer, GiftRequestSerializer
+from users.models import User
 
 
 class SecretSantaTestCase(APITestCase):
@@ -12,13 +12,13 @@ class SecretSantaTestCase(APITestCase):
         fake = Faker()
 
         for i in range(3):
-            user = Users.objects.create(first_name=fake.first_name(), last_name=fake.last_name(), email=fake.email())
+            user = User.objects.create(name=fake.name(), email=fake.email())
             user.save()
 
         self.user = user
         self.box = Boxes.objects.create(name_box="Test_box")
 
-        for user in Users.objects.all():
+        for user in User.objects.all():
             description = fake.word()
             self.giftrequest = GiftRequest.objects.create(user=user, box=self.box, description=description)
 
@@ -28,7 +28,7 @@ class BoxesAPITests(SecretSantaTestCase):
         """
         List boxes
         """
-        url = "/api/boxes/"
+        url = "/api/v1/boxes/"
 
         with self.assertNumQueries(1):
             response = self.client.get(url)
@@ -70,7 +70,7 @@ class BoxesDetailAPITests(SecretSantaTestCase):
         """
         Detail box by id
         """
-        url = f"/api/boxes/{self.box.id}"
+        url = f"/api/v1/boxes/{self.box.id}"
 
         with self.assertNumQueries(1):
             response = self.client.get(url)
@@ -116,7 +116,7 @@ class GiftRequestAPITests(SecretSantaTestCase):
         """
         List GiftRequest
         """
-        url = "/api/giftrequest/"
+        url = "/api/v1/giftrequests/"
 
         with self.assertNumQueries(1):
             response = self.client.get(url)
@@ -134,7 +134,7 @@ class GiftRequestDetailAPITests(SecretSantaTestCase):
         """
         Detail GiftRequest by id
         """
-        url = f"/api/giftrequest/{self.giftrequest.id}"
+        url = f"/api/v1/giftrequests/{self.giftrequest.id}"
 
         with self.assertNumQueries(1):
             response = self.client.get(url)

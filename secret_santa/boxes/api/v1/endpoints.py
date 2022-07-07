@@ -1,17 +1,18 @@
-from django.http import Http404
-from django.shortcuts import get_object_or_404
-from rest_framework import status
-from rest_framework.exceptions import ValidationError
-from rest_framework.response import Response
-from rest_framework.views import APIView
-
-from .models import Boxes, GiftRequest, ReceiverSender, Users
-from .serializers import (
+from boxes.api.v1.serializers import (
     BoxesSerializer,
     GiftRequestSerializer,
     ReceiverSenderSerializer,
     UsersSerializer,
 )
+from boxes.models import Boxes, GiftRequest, ReceiverSender
+from django.http import Http404
+from django.shortcuts import get_object_or_404
+from rest_framework import status
+from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from users.models import User
 
 
 class RoutesList(APIView):
@@ -21,14 +22,14 @@ class RoutesList(APIView):
 
     def get(self, request, format=None):
         routes = [
-            {"GET": "/api/users"},
-            {"GET": "/api/users/id"},
-            {"GET": "/api/boxes"},
-            {"GET": "/api/boxes/id"},
-            {"GET": "/api/receiversender/id"},
-            {"GET": "/api/receiversender"},
-            {"GET": "/api/giftrequest/id"},
-            {"GET": "/api/giftrequest"},
+            {"GET": "/v1/boxes/users"},
+            {"GET": "/v1/boxes/users/id"},
+            {"GET": "/v1/boxes/boxes"},
+            {"GET": "/v1/boxes/boxes/id"},
+            {"GET": "/v1/boxes/receiversenders/id"},
+            {"GET": "/v1/boxes/receiversenders"},
+            {"GET": "/v1/boxes/giftrequests/id"},
+            {"GET": "/v1/boxes/giftrequests"},
         ]
         return Response(routes)
 
@@ -39,7 +40,7 @@ class UsersList(APIView):
     """
 
     def get(self, request, format=None):
-        users = Users.objects.all()
+        users = User.objects.all()
         serializer = UsersSerializer(users, many=True)
         return Response(serializer.data)
 
@@ -57,7 +58,7 @@ class SingleUser(APIView):
     """
 
     def get_single_user(self, pk):
-        return get_object_or_404(Users, pk=pk)
+        return get_object_or_404(User, pk=pk)
 
     def get(self, request, pk, format=None):
         user = self.get_single_user(pk)

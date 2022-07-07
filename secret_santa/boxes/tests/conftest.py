@@ -1,7 +1,6 @@
 import pytest
+from boxes.tests.factories import BoxesFactory, GiftRequestFactory, UsersFactory
 from pytest_factoryboy import register
-
-from .factories import BoxesFactory, GiftRequestFactory, UsersFactory
 
 register(BoxesFactory)
 register(UsersFactory)
