@@ -3,6 +3,7 @@ import uuid
 from enum import Enum
 
 from django.db import models
+from users.models import User
 
 # Create your models here.
 
@@ -17,17 +18,11 @@ class StatusChoices(str, Enum):
         return tuple((i.name.lower(), i.value) for i in cls)
 
 
-class Users(models.Model):
-    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-    email = models.CharField(max_length=100)
-
-    def __str__(self):
-        return f"{self.first_name} {self.last_name}"
-
-
 class Boxes(models.Model):
+    class Meta:
+        verbose_name = "Box"
+        verbose_name_plural = "Boxes"
+
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     name_box = models.CharField(max_length=100)
     create_date = models.DateTimeField(auto_now_add=True)
@@ -71,14 +66,25 @@ class Boxes(models.Model):
 
 
 class GiftRequest(models.Model):
+    class Meta:
+        verbose_name = "Gift"
+        verbose_name_plural = "Gifts"
+
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
-    user = models.ForeignKey(Users, related_name="giftrequests", on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name="giftrequests", on_delete=models.CASCADE)
     description = models.TextField(null=True, blank=True)
     box = models.ForeignKey(Boxes, related_name="giftrequests", on_delete=models.CASCADE)
 
+    def __str__(self):
+        return f"{self.user} - {self.description}"
+
 
 class ReceiverSender(models.Model):
+    class Meta:
+        verbose_name = "ReceiverSender"
+        verbose_name_plural = "ReceiverSenders"
+
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
-    sender = models.ForeignKey(Users, related_name="sender", on_delete=models.CASCADE)
-    receiver = models.ForeignKey(Users, related_name="receiver", on_delete=models.CASCADE)
+    sender = models.ForeignKey(User, related_name="sender", on_delete=models.CASCADE)
+    receiver = models.ForeignKey(User, related_name="receiver", on_delete=models.CASCADE)
     box = models.ForeignKey(Boxes, on_delete=models.CASCADE)

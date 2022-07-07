@@ -1,7 +1,7 @@
 import factory
+from boxes.models import Boxes, GiftRequest
 from faker import Faker
-
-from ..models import Boxes, GiftRequest, Users
+from users.models import User
 
 fake = Faker()
 
@@ -15,10 +15,10 @@ class BoxesFactory(factory.django.DjangoModelFactory):
 
 class UsersFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = Users
+        model = User
 
-    first_name = factory.LazyAttribute(lambda _: fake.first_name())
-    last_name = factory.LazyAttribute(lambda _: fake.last_name())
+    name = factory.LazyAttribute(lambda _: fake.name())
+    # last_name = factory.LazyAttribute(lambda _: fake.last_name())
     email = factory.LazyAttribute(lambda _: fake.email())
 
 
