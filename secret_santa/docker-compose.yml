@@ -1,0 +1,49 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres
+    container_name: postgresql_tms
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pg_data:/var/lib/postgresql/data/pgdata
+    environment:
+      - POSTGRES_PASSWORD=lastochka1488
+      - POSTGRES_DB=secret_santa
+      - POSTGRES_USER=d.ulasovets
+      - PGDATA=./pg_data:/var/lib/postgresql/data/pgdata
+    restart: always
+
+  redis:
+    image: redis:alpine
+    ports:
+        - "6379:6379"
+
+  app:
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/usr/src/app
+    environment:
+      - SECRET_SANTA_DB_REDIS_LOCATION=redis://redis:6379/1
+      - POSTGRES_HOST=postgres
+    restart: always
+    depends_on:
+      - postgres
+      - redis
+
+  celery:
+    restart: always
+    build:
+      context: .
+    command: celery -A secret_santa worker -l INFO
+    volumes:
+      - .:/usr/src/app
+    environment:
+      - SECRET_SANTA_DB_REDIS_LOCATION=redis://redis:6379/1
+    depends_on:
+      - redis
+      - app

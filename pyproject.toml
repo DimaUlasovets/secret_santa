@@ -8,11 +8,20 @@ authors = ["Dima Ulasovets <d.ulasovets@gmail.com>"]
 python = "^3.8"
 Django = "^4.0.4"
 djangorestframework = "^3.13.1"
-psycopg-binary = "^3.0.11"
-pre-commit = "^2.18.1"
-flake8 = "^4.0.1"
 
 [tool.poetry.dev-dependencies]
+black = "^22.3.0"
+flake8 = "^4.0.1"
+pre-commit = "^2.18.1"
+psycopg2-binary = "^2.9.3"
+pytest = "^7.1.2"
+pytest-django = "^4.5.2"
+pytest-factoryboy = "^2.3.1"
+Faker = "^13.12.0"
+ipython = "^8.4.0"
+pytest-dotenv = "^0.5.2"
+django-redis = "^5.2.0"
+celery = "5.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
