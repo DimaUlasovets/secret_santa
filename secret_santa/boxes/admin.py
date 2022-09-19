@@ -1,4 +1,4 @@
-from boxes.models import Boxes, GiftRequest, ReceiverSender
+from boxes.models import BoxComments, Boxes, GiftRequest, ReceiverSender
 from django.contrib import admin
 
 # Register your models here.
@@ -16,4 +16,9 @@ class GiftRequestAdmin(admin.ModelAdmin):
 
 @admin.register(ReceiverSender)
 class ReceiverSenderAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(BoxComments)
+class BoxCommentsAdmin(admin.ModelAdmin):
     pass

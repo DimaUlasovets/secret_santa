@@ -1,4 +1,4 @@
-from boxes.models import Boxes, GiftRequest, ReceiverSender
+from boxes.models import BoxComments, Boxes, GiftRequest, ReceiverSender
 from rest_framework import serializers
 from users.models import User
 
@@ -33,10 +33,25 @@ class UsersSerializer(serializers.ModelSerializer):
 
 
 class ReceiverSenderSerializer(serializers.ModelSerializer):
-    sender = UsersSerializer(many=False)
-    receiver = UsersSerializer(many=False)
-    box = BoxesSerializer(many=False)
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
+        ret["sender"] = UsersSerializer(obj.sender).data
+        ret["receiver"] = UsersSerializer(obj.receiver).data
+        ret["box"] = BoxesSerializer(obj.box).data
+        return ret
 
     class Meta:
         model = ReceiverSender
+        fields = "__all__"
+
+
+class BoxCommentsSerializer(serializers.ModelSerializer):
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
+        ret["user"] = UsersSerializer(obj.user).data
+        ret["box"] = BoxesSerializer(obj.box).data
+        return ret
+
+    class Meta:
+        model = BoxComments
         fields = "__all__"

@@ -9,7 +9,7 @@ from django.db import models
 class UserManager(BaseUserManager):
     """Manager for users"""
 
-    def _create_user(self, email, password, **extra_fields):
+    def _create_user(self, email, name, password, **extra_fields):
 
         if not email:
             raise ValueError("The given email must be set")
@@ -17,12 +17,13 @@ class UserManager(BaseUserManager):
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
+        user.name = name
         user.save()
         return user
 
-    def create_user(self, email, password=None, **extra_fields):
+    def create_user(self, email, name, password=None, **extra_fields):
         extra_fields.setdefault("is_superuser", False)
-        return self._create_user(email, password, **extra_fields)
+        return self._create_user(email, name, password, **extra_fields)
 
     def create_superuser(self, email, password, **extra_fields):
         extra_fields.setdefault("is_staff", True)

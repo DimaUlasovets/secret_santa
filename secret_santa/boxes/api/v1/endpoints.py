@@ -1,18 +1,26 @@
+from boxes import tasks
 from boxes.api.v1.serializers import (
+    BoxCommentsSerializer,
     BoxesSerializer,
     GiftRequestSerializer,
     ReceiverSenderSerializer,
     UsersSerializer,
 )
-from boxes.models import Boxes, GiftRequest, ReceiverSender
+from boxes.models import BoxComments, Boxes, GiftRequest, ReceiverSender
+from boxes.paginations import PaginationHandlerMixin
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.models import User
+
+
+class BasicPagination(PageNumberPagination):
+    page_size_query_param = "limit"
 
 
 class RoutesList(APIView):
@@ -34,14 +42,23 @@ class RoutesList(APIView):
         return Response(routes)
 
 
-class UsersList(APIView):
+class UsersList(APIView, PaginationHandlerMixin):
     """
     List all users.
     """
 
+    permission_classes = [AllowAny]
+    pagination_class = BasicPagination
+
     def get(self, request, format=None):
         users = User.objects.all()
-        serializer = UsersSerializer(users, many=True)
+        page = self.paginate_queryset(users)
+
+        if page is not None:
+            serializer = self.get_paginated_response(UsersSerializer(page, many=True).data)
+        else:
+            serializer = UsersSerializer(users, many=True)
+
         return Response(serializer.data)
 
     def post(self, request, format=None):
@@ -87,14 +104,27 @@ class SingleUser(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class BoxesList(APIView):
+class BoxesList(APIView, PaginationHandlerMixin):
     """
     List all boxes.
     """
 
+    permission_classes = [AllowAny]
+    pagination_class = BasicPagination
+
     def get(self, request, format=None):
+        status_box = self.request.query_params.get("status_box", None)
         boxes = Boxes.objects.all()
-        serializer = BoxesSerializer(boxes, many=True)
+
+        if status_box:
+            boxes = boxes.filter(status_box=status_box)
+
+        page = self.paginate_queryset(boxes)
+
+        if page is not None:
+            serializer = self.get_paginated_response(BoxesSerializer(page, many=True).data)
+        else:
+            serializer = BoxesSerializer(boxes, many=True)
         return Response(serializer.data)
 
     def post(self, request, format=None):
@@ -116,10 +146,6 @@ class SingleBox(APIView):
     def get(self, request, pk, format=None):
         box = self.get_single_box(pk)
         serializer = BoxesSerializer(box, many=False)
-
-        # group = get_object_or_404(Boxes, pk=pk)  # Test logic for close group and sort receiver/sender
-        # group.close_group()  # Test logic for close group and sort receiver/sender
-
         return Response(serializer.data)
 
     def patch(self, request, pk):
@@ -144,18 +170,52 @@ class SingleBox(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ListReceiverSender(APIView):
+class CloseBox(APIView):
+    """
+    Close box, change status box to close
+    """
+
+    def get(self, request, pk, format=None):
+        box = get_object_or_404(Boxes, pk=pk)
+        box.close_group()
+        tasks.message_to_receiver_sender.delay(pk)
+        return Response(status.HTTP_200_OK)
+
+
+class ListReceiverSender(APIView, PaginationHandlerMixin):
     """
     List all Receiver/Sender
     """
 
+    permission_classes = [AllowAny]
+    pagination_class = BasicPagination
+
     def get(self, request, format=None):
+
+        sender = self.request.query_params.get("sender", None)
+        receiver = self.request.query_params.get("receiver", None)
+        box = self.request.query_params.get("box", None)
+
         receivers_senders = ReceiverSender.objects.all()
-        serializer = ReceiverSenderSerializer(receivers_senders, many=True)
+
+        if sender:
+            receivers_senders = receivers_senders.filter(sender__email__contains=sender)
+        if receiver:
+            receivers_senders = receivers_senders.filter(receiver__email__contains=receiver)
+        if box:
+            receivers_senders = receivers_senders.filter(box__name_box__contains=box)
+
+        page = self.paginate_queryset(receivers_senders)
+
+        if page is not None:
+            serializer = self.get_paginated_response(ReceiverSenderSerializer(page, many=True).data)
+        else:
+            serializer = ReceiverSenderSerializer(receivers_senders, many=True)
+
         return Response(serializer.data)
 
     def post(self, request, format=None):
-        serializer = ReceiverSender(data=request.data)
+        serializer = ReceiverSenderSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -197,14 +257,33 @@ class SingleReceiverSender(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ListGiftRequest(APIView):
+class ListGiftRequest(APIView, PaginationHandlerMixin):
     """
     List all GiftRequest
     """
 
+    permission_classes = [AllowAny]
+    pagination_class = BasicPagination
+
     def get(self, request, format=None):
+
+        box = self.request.query_params.get("box", None)
+        user = self.request.query_params.get("user", None)
+
         gift_request = GiftRequest.objects.select_related("box").all()
-        serializer = GiftRequestSerializer(gift_request, many=True)
+
+        if box:
+            gift_request = gift_request.filter(box__name_box__contains=box)
+        if user:
+            gift_request = gift_request.filter(user__email__contains=user)
+
+        page = self.paginate_queryset(gift_request)
+
+        if page is not None:
+            serializer = self.get_paginated_response(GiftRequestSerializer(page, many=True).data)
+        else:
+            serializer = GiftRequestSerializer(gift_request, many=True)
+
         return Response(serializer.data)
 
     def post(self, request, format=None):
@@ -247,4 +326,70 @@ class SingleGiftRequest(APIView):
     def delete(self, request, pk, format=None):
         gift_request = self.get_single_gift_request_sender(pk)
         gift_request.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class BoxesComments(APIView, PaginationHandlerMixin):
+    """
+    List all comments.
+    """
+
+    permission_classes = [AllowAny]
+    pagination_class = BasicPagination
+
+    def get(self, request, format=None):
+        box = self.request.query_params.get("box", None)
+        box_comments = BoxComments.objects.filter(user=self.request.user)
+
+        if box:
+            box_comments = box_comments.filter(box=box)
+
+        page = self.paginate_queryset(box_comments)
+
+        if page is not None:
+            serializer = self.get_paginated_response(BoxCommentsSerializer(page, many=True).data)
+        else:
+            serializer = BoxCommentsSerializer(box_comments, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, format=None):
+        serializer = BoxCommentsSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SingleCommentBox(APIView):
+    """
+    Single box by id
+    """
+
+    def get_single_comment(self, pk):
+        return get_object_or_404(BoxComments, pk=pk)
+
+    def get(self, request, pk, format=None):
+        comment = self.get_single_comment(pk)
+        serializer = BoxCommentsSerializer(comment, many=False)
+        return Response(serializer.data)
+
+    def patch(self, request, pk):
+        comment = self.get_single_comment(pk)
+        serializer = BoxCommentsSerializer(comment, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk, format=None):
+        comment = self.get_single_comment(pk)
+        serializer = BoxCommentsSerializer(comment, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk, format=None):
+        comment = self.get_single_comment(pk)
+        comment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

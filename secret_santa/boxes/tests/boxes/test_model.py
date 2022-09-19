@@ -1,4 +1,4 @@
-from ...models import Boxes, ReceiverSender
+from boxes.models import Boxes, ReceiverSender
 
 
 class TestGroup:

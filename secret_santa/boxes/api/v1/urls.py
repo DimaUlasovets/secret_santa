@@ -12,5 +12,8 @@ urlpatterns = [
     path("receiversenders/<uuid:pk>", endpoints.SingleReceiverSender.as_view(), name="receiversender_detail_api"),
     path("giftrequests/", endpoints.ListGiftRequest.as_view(), name="giftrequest_list_api"),
     path("giftrequests/<uuid:pk>", endpoints.SingleGiftRequest.as_view(), name="giftrequest_detail_api"),
+    path("closebox/<uuid:pk>", endpoints.CloseBox.as_view(), name="close_box_detail_api"),
+    path("comments/", endpoints.BoxesComments.as_view(), name="box_comments"),
+    path("comments/<uuid:pk>", endpoints.SingleCommentBox.as_view(), name="box_comments_single"),
 ]
 urlpatterns = format_suffix_patterns(urlpatterns)

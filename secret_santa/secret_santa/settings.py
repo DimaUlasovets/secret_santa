@@ -23,6 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_SANTA_SECRET_KEY")
+# SECRET_KEY = "django-insecure-lsr9)!jqctn8+!v$wrzyv&ig&)gt=54q4_a9@0awpm3q16+0)j_q"
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -103,6 +104,7 @@ DATABASES = {
         "USER": os.getenv("SECRET_SANTA_DB_USER"),
         "HOST": os.getenv("SECRET_SANTA_DB_HOST"),
         "PASSWORD": os.getenv("SECRET_SANTA_DB_PASSWORD"),
+        "PORT": os.getenv("SECRET_SANTA_DB_PORT"),
         "TEST": {
             "NAME": os.getenv("SECRET_SANTA_DB_TEST_NAME"),
         },
@@ -154,7 +156,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "users.User"
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=20),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=100),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": False,
@@ -179,3 +181,17 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
 }
+
+EMAIL_HOST = os.getenv("SECRET_SANTA_EMAIL_HOST")
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = os.getenv("SECRET_SANTA_EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("SECRET_SANTA_EMAIL_HOST_PASSWORD")
+
+CELERY_BROKER_URL = os.environ["SECRET_SANTA_DB_REDIS_LOCATION"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_TRACK_STARTED = True
+CELERY_ENABLE_UTC = True
+CELERYD_MAX_TASKS_PER_CHILD = 20

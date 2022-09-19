@@ -88,3 +88,14 @@ class ReceiverSender(models.Model):
     sender = models.ForeignKey(User, related_name="sender", on_delete=models.CASCADE)
     receiver = models.ForeignKey(User, related_name="receiver", on_delete=models.CASCADE)
     box = models.ForeignKey(Boxes, on_delete=models.CASCADE)
+
+
+class BoxComments(models.Model):
+    class Meta:
+        verbose_name = "Comment"
+        verbose_name_plural = "Comments"
+
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
+    user = models.ForeignKey(User, related_name="boxcomments", on_delete=models.CASCADE)
+    box = models.ForeignKey(Boxes, related_name="boxcomments", on_delete=models.CASCADE)
+    comment_text = models.TextField(null=True, blank=True)

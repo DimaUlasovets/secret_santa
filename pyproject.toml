@@ -20,6 +20,8 @@ pytest-factoryboy = "^2.3.1"
 Faker = "^13.12.0"
 ipython = "^8.4.0"
 pytest-dotenv = "^0.5.2"
+django-redis = "^5.2.0"
+celery = "5.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

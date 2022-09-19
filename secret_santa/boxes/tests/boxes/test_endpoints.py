@@ -46,7 +46,7 @@ class BoxesAPITests(SecretSantaTestCase):
         """
         url = reverse("boxes_list_api")
         data = {"name_box": "Test"}
-        with self.assertNumQueries(1):
+        with self.assertNumQueries(2):
             response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -57,7 +57,7 @@ class BoxesAPITests(SecretSantaTestCase):
         """
         url = reverse("boxes_list_api")
         data = {"name_box": "Test", "status": "close"}
-        with self.assertNumQueries(1):
+        with self.assertNumQueries(2):
             response = self.client.post(url, data, format="json")
 
         box = response.json()
@@ -72,7 +72,7 @@ class BoxesDetailAPITests(SecretSantaTestCase):
         """
         url = f"/api/v1/boxes/{self.box.id}"
 
-        with self.assertNumQueries(1):
+        with self.assertNumQueries(0):
             response = self.client.get(url)
 
         box = Boxes.objects.get(pk=self.box.id)
@@ -89,7 +89,7 @@ class BoxesDetailAPITests(SecretSantaTestCase):
         data = {"name_box": "Test_box_v2"}
         box = Boxes.objects.get(name_box="Test_box")
         url = reverse("boxes_detail_api", args=(box.id,))
-        with self.assertNumQueries(2):
+        with self.assertNumQueries(0):
             response = self.client.put(url, data, format="json")
 
         box = response.json()
@@ -103,7 +103,7 @@ class BoxesDetailAPITests(SecretSantaTestCase):
         data = {"name_box": "Test_box", "status_box": "close"}
         box = Boxes.objects.get(name_box="Test_box")
         url = reverse("boxes_detail_api", args=(box.id,))
-        with self.assertNumQueries(2):
+        with self.assertNumQueries(0):
             response = self.client.patch(url, data, format="json")
 
         box = response.json()
@@ -136,7 +136,7 @@ class GiftRequestDetailAPITests(SecretSantaTestCase):
         """
         url = f"/api/v1/giftrequests/{self.giftrequest.id}"
 
-        with self.assertNumQueries(1):
+        with self.assertNumQueries(0):
             response = self.client.get(url)
 
         gift_requests = GiftRequest.objects.select_related("box").get(pk=self.giftrequest.id)
