@@ -11,6 +11,7 @@ setup(
     install_requires=[
         "Django==4.0.4",
         "djangorestframework==3.13.1",
+        "djangorestframework-simplejwt==5.2.0",
         "psycopg2-binary==2.9.3",
         "pytest==7.1.2",
         "pytest-django==4.5.2",
@@ -23,7 +24,6 @@ setup(
         "black==22.3.0",
         "flake8==4.0.1",
         "pre-commit==2.18.1",
-        "djangorestframework-simplejwt==5.2.0",
     ],
     include_package_data=True,
 )
